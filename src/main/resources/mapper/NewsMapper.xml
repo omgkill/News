@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 
+	namespace：必须与对应的接口全类名一致
+	id:必须与对应接口的某个对应的方法名一致
+	
+ -->
+ 
+ <mapper namespace="com.jingshuai.mapper.NewsMapper" >
+
+ <select id="queryNewsByCondition" resultType="news">
+ 	select * from news 
+ 	 <where>
+ 	 	<if test="categoryid != 0">
+ 	 		AND categoryid = ${categoryid} 
+ 	 	</if>
+ 	 </where>
+ </select>
+ 
+ <!-- 通过id查询新闻 -->
+ <select id="queryNewsById"  resultType="news">
+ 	select * from news
+ 	where 
+ 	id = #{value}
+ </select>
+ 
+ <!-- 修改新闻 -->
+ <update id="updateNewsById">
+ 	update news 
+ 	<set>
+ 		<if test="categoryid != 0">
+ 			categoryid = ${categoryid},
+ 		</if>
+ 		<if test="title != null" >
+ 			title = ${title}
+ 		</if>
+ 	</set>
+ </update>
+ 
+ <select id="queryNewsTitleByCategoryId" resultType="news">
+ 	select id, title, time, keywords, authorname
+ 	FROM news
+ 	WHERE categoryid = #{value:VARCHAR}
+ </select>
+ 
+ </mapper>

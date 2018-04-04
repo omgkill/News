@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:context="http://www.springframework.org/schema/context" xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+		http://www.springframework.org/schema/context
+		http://www.springframework.org/schema/context/spring-context-4.0.xsd
+		http://www.springframework.org/schema/tx
+		http://www.springframework.org/schema/tx/spring-tx-4.0.xsd">
+
+
+    <!-- 自动扫描
+    <context:component-scan base-package="com.jing.experiment.news" >
+          <context:exclude-filter type="annotation" expression="org.springframework.web.bind.annotation.ControllerAdvice"/>
+          <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+    </context:component-scan>-->
+    <!--加入配置文件-->
+    <context:property-placeholder location="classpath:config/conf.properties"/>
+    <!-- 1. 数据源 : DriverManagerDataSource -->
+    <bean id="dataSource"
+          class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="driverClassName" value="${jdbc.driverClassName}"/>
+        <property name="url" value="${jdbc.jdbcUrl}"/>
+        <property name="username" value="${jdbc.user}"/>
+        <property name="password" value="${jdbc.password}"/>
+    </bean>
+
+    <!--
+        2. mybatis的SqlSession的工厂: SqlSessionFactoryBean dataSource:引用数据源
+
+        MyBatis定义数据源,同意加载配置
+    -->
+
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+
+        <property name="typeAliasesPackage" value="com.jing.experiment.news.bean"/>
+        <!--sql的xml文件的地址-->
+        <property name="mapperLocations">
+            <array>
+                <value>classpath:mapper/*.xml</value>
+            </array>
+        </property>
+        <!--mybatis分页插件-->
+        <property name="plugins">
+            <array>
+                <bean class="com.github.pagehelper.PageInterceptor">
+                    <property name="properties">
+                        <!--使用下面的方式配置参数，一行配置一个 -->
+                        <value>
+                            helperDialect=mysql
+                            pageSizeZero=true
+                            reasonable=true
+                        </value>
+                    </property>
+                </bean>
+            </array>
+        </property>
+    </bean>
+
+
+    <bean class="tk.mybatis.spring.mapper.MapperScannerConfigurer">
+
+
+        <!--<property name="annotationClass" value="org.springframework.stereotype.Repository"/> -->
+
+
+        <!-- 这里的basePackage 指定了dao层接口路劲，这里的dao接口不用自己实现-->
+        <property name="basePackage" value="com.jing.experiment.news.mapper"/>
+
+        <!-- 如果只有一个数据源的话可以不用指定，但是如果有多个数据源的话必须要指定
+            当这样配置时，如果数据源DataSource的属性中使用了properties属性，那么就会报异常：
+            所以下面的配置sqlsessionTemplate更好
+            官方已经弃用了采用sqlSessionFactoryBean 和 SesionTemplateBean的方式进行配置，
+            而推荐使用sqlSessionFactoryBeanName 和  sqlSessionTemplateBeanName
+            sqlSessionFactory这种已经过时
+            解释：
+            SqlSessionFactoryBean是一个工厂bean，它的作用就是解析配置（数据源、别名等）。
+             MapperFactoryBean是一个工厂bean，在spring容器里，工厂bean是有特殊用途的，
+             当spring将工厂bean注入到其他bean里时，它不是注入工厂bean本身而是调用bean的getObject方法
+            。我们接下来就看看这个getObjec方法干了些什么：
+         -->
+        <!-- <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" /> -->
+
+
+        <!--直接指定了sqlsessionTemplate名称，这个和上面的其实是一样的        -->
+
+        <!--  <property name="sqlSessionTemplateBeanName" value="sqlSession" /> -->
+    </bean>
+
+
+
+    <!--
+        4. 事务管理 : DataSourceTransactionManager dataSource:引用上面定义的数据源
+    -->
+    <bean id="txManager"
+          class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"></property>
+    </bean>
+
+    <!-- 5. 使用声明式事务
+         transaction-manager：引用上面定义的事务管理器
+     -->
+    <tx:annotation-driven transaction-manager="txManager"/>
+
+</beans>
