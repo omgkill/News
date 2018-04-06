@@ -15,14 +15,13 @@
 <base href="<%=basePath%>" />
 <title>添加商品</title>
 <meta http-equiv="content-type" content="text/html;charset=utf-8">
-<link href="./admin/css/mine.css" type="text/css" rel="stylesheet">
-	<script src="https://cdn.bootcss.com/jquery/2.2.3/jquery.min.js"></script>
 
-<script charset="utf-8" src="../../kindeditor/kindeditor.js"></script>
+
+<script charset="utf-8" src="/news/kindeditor/kindeditor.js"></script>
 
 <script>
 	KindEditor.ready(function(K) {
-		var editor1 = K.create('textarea[name="content1"]', {
+		var editor1 = K.create('textarea[name="content"]', {
 
 		});
 		prettyPrint();
@@ -85,8 +84,9 @@
 				-->
 				<tr>
 					<td>新闻内容</td>
-					<td><textarea name="content1"
-							style="width: 700px; height: 300px;"></textarea> <!--<textarea id="content_1" rows="20" cols="100%" name="news_content"></textarea>  -->
+					<td><textarea name="content"
+							style="width: 700px; height: 300px;"></textarea>
+                        <!--<textarea id="content_1" rows="20" cols="100%" name="news_content"></textarea>  -->
 				</tr>
 				<tr>
 					<td colspan="2" align="center"><input type="submit" value="添加"></td>

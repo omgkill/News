@@ -10,20 +10,24 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
 import java.io.File;
 import java.io.IOException;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 /**
  * @ author jings
  * ����ģ��
  */
-@RestController
 @RequestMapping("/news")
+@RestControllerAdvice
 public class NewsController {
     private static final Logger log = LoggerFactory.getLogger(NewsController.class);
 
@@ -50,12 +54,7 @@ public class NewsController {
         List<NewsBean> newsList ;
         PageHelper.offsetPage(newsBean.getOffset(), newsBean.getPageSize());
         //PageHelper.startPage(newsBean.getOffset(),20);
-        //newsList   = newsMapper.queryNewsByCondition(newsBean);
-        //newsBean.setCategoryid(1);
         newsList = newsMapper.queryNewsByCondition(newsBean);
-        // newsMapper.queryNewsByCondition(newsBean);
-        //log.debug(newsList.toString());
-        //PageInfo<NewsBean> pageInfo = ;
         return new PageInfo<>(newsList);
 
     }
@@ -93,35 +92,42 @@ public class NewsController {
      * @return string
      */
     @RequestMapping("/addNews")
-    public String addNews(NewsBean newsBean, @RequestParam("file") MultipartFile multipartFile) {
+    public ModelAndView addNews(NewsBean newsBean, @RequestParam("file") MultipartFile multipartFile) {
 
         if (null == newsBean) {
-            System.out.println("----------");
-        } else {
-            System.out.println(newsBean.getTitle());
-        }
-        if (multipartFile.getName() == null) {
-            System.out.println("33333333333333333333333333333333");
+            throw new NullPointerException("kong");
         }
 
+        Date date = new Date();
+        SimpleDateFormat simpleDateFormat =
+                new SimpleDateFormat("yyyy"+ File.separator+"MM"+File.separator+"dd");
+        String dateDir = simpleDateFormat.format(date);
         if (!multipartFile.isEmpty()) {
             String name = multipartFile.getOriginalFilename();
-            String path = uploadDir;
-            System.out.println("--------" + path);
+            String path = uploadDir + dateDir;
+            name = radom5() + name;
             File file = new File(path, name);
-//            if (!file.getParentFile().exists()) {
-//                file.getParentFile().mkdirs();
-//            }
+            if(!file.getParentFile().exists()){
+                log.info("-------------"+file.getParent());
+                if(!file.getParentFile().mkdirs()) {
+                    throw new NullPointerException("无法创建文件夹");
+                }
+            }
             try {
                 multipartFile.transferTo(new File(path + File.separator + name));
             } catch (IllegalStateException | IOException e) {
                 e.printStackTrace();
+                throw new NullPointerException("无法创建文件");
             }
+            newsBean.setPictureaddress(path + File.separator + name);
+            Timestamp timestamp = new Timestamp(date.getTime());
+            newsBean.setTime(timestamp);
         }
 
 
-        // newsMapper.insert(newsBean);
-        return "/admin/news/news_list.jsp";
+         newsMapper.insert(newsBean);
+        ModelAndView mv = new ModelAndView("/admin/news/news_list.jsp");
+        return mv;
         //return newsMapper.insert(newsBean);
     }
 
@@ -139,4 +145,9 @@ public class NewsController {
 //        List<NewsBean> list = mapper.selectAll();
 //        return new PageInfo(list);
 //    }
+
+    private String radom5(){
+        long rand = Math.round(Math.random()*9999 + 10000);
+        return rand+"";
+    }
 }
